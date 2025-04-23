@@ -21,6 +21,16 @@ db.connect((err) => {
 // Route to save user location
 app.post('/save-location', (req, res) => {
   const { lat, lng } = req.body;
+
+  // Validate latitude and longitude
+  if (
+    typeof lat !== 'number' || typeof lng !== 'number' || // Ensure they are numbers
+    lat < -90 || lat > 90 ||                              // Latitude range
+    lng < -180 || lng > 180                               // Longitude range
+  ) {
+    return res.status(400).send('Invalid latitude or longitude');
+  }
+
   const sql = 'INSERT INTO user_locations (latitude, longitude) VALUES (?, ?)';
   db.query(sql, [lat, lng], (err, result) => {
     if (err) {
