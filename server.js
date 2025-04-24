@@ -1,8 +1,11 @@
 const express = require('express');
+const cors = require('cors');
 const mysql = require('mysql2');
-const axios = require('axios');
+const path = require('path'); // Import path module
 require('dotenv').config(); // Load environment variables
+
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // MySQL setup
@@ -18,11 +21,15 @@ db.connect((err) => {
   console.log('MySQL connected');
 });
 
+// Serve static files (e.g., index.html, script.js, etc.)
+app.use(express.static(path.join(__dirname, 'gmap-integration-sample')));
+console.log('Serving static files from:', path.join(__dirname, 'gmap-integration-sample'));
+
 // Route to save user location
 app.post('/save-location', (req, res) => {
-  const { lat, lng } = req.body;
+  const { latitude, longitude } = req.body;
   const sql = 'INSERT INTO user_locations (latitude, longitude) VALUES (?, ?)';
-  db.query(sql, [lat, lng], (err, result) => {
+  db.query(sql, [latitude, longitude], (err, result) => {
     if (err) {
       console.error('Error saving location:', err);
       return res.status(500).send('Database error');
@@ -31,13 +38,8 @@ app.post('/save-location', (req, res) => {
   });
 });
 
-app.get('/maps-api', (req, res) => {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Use the API key from .env
-  const url = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
 
-  res.redirect(url); // Redirect the frontend to the Google Maps API
-});
-
+// Start the server
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
